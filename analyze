@@ -1,0 +1,266 @@
+-- Calculate and analyze ride duration for annual members using electric bikes
+SELECT
+  member_casual,
+  rideable_type,
+  AVG(TIMESTAMP_DIFF(ended_at, started_at, SECOND)) / 60 AS average_ride_duration_minutes
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'member'
+  AND rideable_type = 'electric_bike'
+GROUP BY
+  member_casual, rideable_type;
+
+-- Calculate and analyze ride duration for annual members using classic bikes
+SELECT
+  member_casual,
+  rideable_type,
+  AVG(TIMESTAMP_DIFF(ended_at, started_at, SECOND)) / 60 AS average_ride_duration_minutes
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'member'
+  AND rideable_type = 'classic_bike'
+GROUP BY
+  member_casual, rideable_type;
+
+-- Calculate and analyze ride duration for casual riders using electric bikes
+SELECT
+  member_casual,
+  rideable_type,
+  AVG(TIMESTAMP_DIFF(ended_at, started_at, SECOND)) / 60 AS average_ride_duration_minutes
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'casual'
+  AND rideable_type = 'electric_bike'
+GROUP BY
+  member_casual, rideable_type;
+
+-- Calculate and analyze ride duration for casual riders using classic bikes
+SELECT
+  member_casual,
+  rideable_type,
+  AVG(TIMESTAMP_DIFF(ended_at, started_at, SECOND)) / 60 AS average_ride_duration_minutes
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'casual'
+  AND rideable_type = 'classic_bike'
+GROUP BY
+  member_casual, rideable_type;
+
+
+-- Calculate the total number of rides for annual members
+SELECT
+  member_casual,
+  COUNT(*) AS total_rides
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'member'
+GROUP BY
+  member_casual;
+
+-- Calculate the total number of rides for casual riders
+SELECT
+  member_casual,
+  COUNT(*) AS total_rides
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'casual'
+GROUP BY
+  member_casual;
+
+-- Analyze the day_of_week column for annual members
+SELECT
+  member_casual,
+  day_of_week,
+  COUNT(*) AS ride_count
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'member'
+GROUP BY
+  member_casual, day_of_week
+ORDER BY
+  member_casual, COUNT(*) DESC;
+
+-- Analyze the day_of_week column for casual riders
+SELECT
+  member_casual,
+  day_of_week,
+  COUNT(*) AS ride_count
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'casual'
+GROUP BY
+  member_casual, day_of_week
+ORDER BY
+  member_casual, COUNT(*) DESC;
+
+
+-- Analyze the month column for annual members
+SELECT
+  member_casual,
+  month,
+  COUNT(*) AS ride_count
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual IN ('member') 
+GROUP BY
+  member_casual, month
+ORDER BY
+  member_casual, COUNT(*) DESC;
+
+-- Analyze the month column for casual riders
+SELECT
+  member_casual,
+  month,
+  COUNT(*) AS ride_count
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'casual'
+GROUP BY
+  member_casual, month
+ORDER BY
+  member_casual, COUNT(*) DESC;
+
+
+-- Most popular start stations for annual members (considering "member" as annual)
+SELECT
+  member_casual,
+  start_station_name,
+  COUNT(*) AS ride_count
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'member'
+GROUP BY
+  member_casual, start_station_name
+ORDER BY
+  member_casual, COUNT(*) DESC;
+
+-- Most popular start stations for casual riders
+SELECT
+  member_casual,
+  start_station_name,
+  COUNT(*) AS ride_count
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'casual'
+GROUP BY
+  member_casual, start_station_name
+ORDER BY
+  member_casual, COUNT(*) DESC;
+
+-- Most popular end stations for annual members 
+SELECT
+  member_casual,
+  end_station_name,
+  COUNT(*) AS ride_count
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'member' 
+GROUP BY
+  member_casual, end_station_name
+ORDER BY
+  member_casual, COUNT(*) DESC;
+
+-- Most popular end stations for casual riders
+SELECT
+  member_casual,
+  end_station_name,
+  COUNT(*) AS ride_count
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'casual'
+GROUP BY
+  member_casual, end_station_name
+ORDER BY
+  member_casual, COUNT(*) DESC;
+
+
+
+-- Bike type preference for annual members
+SELECT
+  member_casual,
+  rideable_type,
+  COUNT(*) AS ride_count
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'member'
+GROUP BY
+  member_casual, rideable_type
+ORDER BY
+  member_casual, COUNT(*) DESC;
+
+-- Bike type preference for casual riders
+SELECT
+  member_casual,
+  rideable_type,
+  COUNT(*) AS ride_count
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'casual'
+GROUP BY
+  member_casual, rideable_type
+ORDER BY
+  member_casual, COUNT(*) DESC;
+
+-- Time of day analysis for annual members
+SELECT
+  member_casual,
+  EXTRACT(HOUR FROM started_at) AS start_hour,
+  COUNT(*) AS ride_count
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'member'
+GROUP BY
+  member_casual, start_hour
+ORDER BY
+  member_casual, start_hour;
+
+-- Time of day analysis for casual riders
+SELECT
+  member_casual,
+  EXTRACT(HOUR FROM started_at) AS start_hour,
+  COUNT(*) AS ride_count
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+WHERE
+  member_casual = 'casual'
+GROUP BY
+  member_casual, start_hour
+ORDER BY
+  member_casual, start_hour;
+
+-- Calculate the proportion of rides made by annual members and casual riders
+SELECT
+  member_casual,
+  COUNT(*) AS ride_count,
+  COUNT(*) / SUM(COUNT(*)) OVER () AS proportion
+FROM
+  `decent-bird-396820.capstone_project.combined_data`
+GROUP BY
+  member_casual
+
+
+
+
+
+
+
+
+
+
