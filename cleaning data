@@ -1,3 +1,29 @@
+-- Create a new table 'combined_data' with the same schema as the first dataset
+CREATE OR REPLACE TABLE `decent-bird-396820.capstone_project.combined_data` AS
+SELECT *
+FROM `decent-bird-396820.capstone_project.2022_01`
+UNION ALL 
+SELECT * FROM `decent-bird-396820.capstone_project.2022_02`
+UNION ALL 
+SELECT * FROM `decent-bird-396820.capstone_project.2022_03`
+UNION ALL 
+SELECT * FROM `decent-bird-396820.capstone_project.2022_04`
+UNION ALL 
+SELECT * FROM `decent-bird-396820.capstone_project.2022_05`
+UNION ALL 
+SELECT * FROM `decent-bird-396820.capstone_project.2022_06`
+UNION ALL 
+SELECT * FROM `decent-bird-396820.capstone_project.2022_07`
+UNION ALL 
+SELECT * FROM `decent-bird-396820.capstone_project.2022_08`
+UNION ALL 
+SELECT * FROM `decent-bird-396820.capstone_project.2022_09`
+UNION ALL 
+SELECT * FROM `decent-bird-396820.capstone_project.2022_10`
+UNION ALL 
+SELECT * FROM `decent-bird-396820.capstone_project.2022_11`
+UNION ALL 
+SELECT * FROM `decent-bird-396820.capstone_project.2022_12`;
 --ride_id
 -- length of the id/*
 SELECT ride_id, LENGTH(ride_id) AS ride_id_length
@@ -16,6 +42,7 @@ WHERE ride_id IN (
   GROUP BY ride_id
   HAVING COUNT(*) > 1
 );
+
 -- Check for missing ride IDs
 SELECT COUNT(*) AS missing_ride_id_count
 FROM `decent-bird-396820.capstone_project.combined_data`
@@ -34,7 +61,7 @@ GROUP BY rideable_type;
 -- Found out there are classic_bike, docked_bike, electric bike
 -- change 'docked_bike' to "classic_bike"
 UPDATE `decent-bird-396820.capstone_project.combined_data`
-SET rideable_type = "classix bike"
+SET rideable_type = "classic_bike"
 WHERE rideable_type = "docked_bike";
 -- Remove rows with NULL values in the rideable_type column
 DELETE FROM `decent-bird-396820.capstone_project.combined_data`
@@ -49,9 +76,15 @@ WHERE started_at IS NULL OR ended_at IS NULL;
 -- Remove rows with inconsistent timestamps (ended_at <= started_at)
 DELETE FROM `decent-bird-396820.capstone_project.combined_data`
 WHERE ended_at <= started_at;
--- Drop the previous day_of_week column
+
+/* Drop the previous day_of_week column
 ALTER TABLE `decent-bird-396820.capstone_project.combined_data`
-DROP COLUMN day_of_week;
+DROP COLUMN day_of_week; */
+
+
+-- Add a new column "day_of_week" with the day of the week
+ALTER TABLE `decent-bird-396820.capstone_project.combined_data`
+ADD COLUMN day_of_week STRING;
 
 -- Update the "day_of_week" column where it is currently null
 UPDATE `decent-bird-396820.capstone_project.combined_data`
@@ -66,6 +99,11 @@ SET day_of_week = CASE
     ELSE 'Unknown'
 END
 WHERE day_of_week IS NULL;
+
+/*-- Drop the previous day_of_week column
+ALTER TABLE `decent-bird-396820.capstone_project.combined_data`
+DROP COLUMN month; */
+
 
 -- Add a new column "month" to your table
 ALTER TABLE `decent-bird-396820.capstone_project.combined_data`
@@ -91,14 +129,12 @@ END
 WHERE month IS NULL;
 
 
-
-
--- ??????????????
+/*??????????????
 SELECT *
 FROM `decent-bird-396820.capstone_project.combined_data`
 WHERE TIMESTAMP_DIFF(ended_at, started_at, SECOND) > 60 -- More than 1 minute
   AND TIMESTAMP_DIFF(ended_at, started_at, SECOND) < 86400 -- Less than 1 day (60 seconds * 60 minutes * 24 hours)
--------????????????
+????????????*/
 
 
 
@@ -106,40 +142,42 @@ WHERE TIMESTAMP_DIFF(ended_at, started_at, SECOND) > 60 -- More than 1 minute
 --start_station_name/end_station_name
 -- Remove leading and trailing spaces from station names
 UPDATE `decent-bird-396820.capstone_project.combined_data`
-SET start_station_name = TRIM(BOTH ' ' FROM start_station_name),
-    end_station_name = TRIM(BOTH ' ' FROM end_station_name);
+SET start_station_name = TRIM(start_station_name),
+    end_station_name = TRIM(end_station_name)
+WHERE TRUE;
+
+
 -- Check for rows with '(Temp)' substring in station names
 SELECT *
 FROM `decent-bird-396820.capstone_project.combined_data`
 WHERE start_station_name LIKE '%(Temp)%'
    OR end_station_name LIKE '%(Temp)%';
+
 -- Remove '(Temp)' substrings from station names
 UPDATE `decent-bird-396820.capstone_project.combined_data`
 SET start_station_name = REPLACE(start_station_name, '(Temp)', ''),
-    end_station_name = REPLACE(end_station_name, '(Temp)', '');
+    end_station_name = REPLACE(end_station_name, '(Temp)', '')
+WHERE TRUE;
 -- Remove classic/docked bike trips with missing station names
-DELETE FROM your_table_name
+DELETE FROM `decent-bird-396820.capstone_project.combined_data`
 WHERE (rideable_type = 'classic_bike' OR rideable_type = 'docked_bike')
   AND (start_station_name IS NULL OR end_station_name IS NULL);
+
 -- Update null station names to 'Bike Lock' for electric bikes
-UPDATE your_table_name
+UPDATE `decent-bird-396820.capstone_project.combined_data`
 SET start_station_name = 'Bike Lock',
     end_station_name = 'Bike Lock'
 WHERE rideable_type = 'electric_bike'
   AND (start_station_name IS NULL OR end_station_name IS NULL);
----?????????????????????
-UPDATE `decent-bird-396820.capstone_project.combined_data`
-SET start_station_name = TRIM(start_station_name),
-    end_station_name = TRIM(end_station_name);
-UPDATE `decent-bird-396820.capstone_project.combined_data`
-SET start_station_name = REPLACE(start_station_name, '(Temp)', ''),
-    end_station_name = REPLACE(end_station_name, '(Temp)', '');
+
+/*
 DELETE FROM `decent-bird-396820.capstone_project.combined_data`
 WHERE start_station_name IN (
     'DIVVY CASSETTE REPAIR MOBILE STATION',
     'Lyft Driver Center Private Rack',
     '351',
     'Base - 2132 W Hubbard Warehouse',
+    'Base - 2132 W Hubbard',
     'Hubbard Bike-checking (LBS-WH-TEST)',
     'WEST CHI-WATSON'
 ) OR end_station_name IN (
@@ -147,10 +185,11 @@ WHERE start_station_name IN (
     'Lyft Driver Center Private Rack',
     '351',
     'Base - 2132 W Hubbard Warehouse',
+    'Base - 2132 W Hubbard',
     'Hubbard Bike-checking (LBS-WH-TEST)',
     'WEST CHI-WATSON'
 );
-----------??????????????
+----------??????????????*/
 
 
 
