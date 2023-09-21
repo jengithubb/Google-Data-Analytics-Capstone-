@@ -1,0 +1,173 @@
+--ride_id
+-- length of the id/*
+SELECT ride_id, LENGTH(ride_id) AS ride_id_length
+FROM `decent-bird-396820.capstone_project.combined_data`
+WHERE LENGTH(ride_id) != 16; 
+ -- Check for duplicate ride IDs
+SELECT ride_id, COUNT(*) AS count
+FROM `decent-bird-396820.capstone_project.combined_data`
+GROUP BY ride_id
+HAVING COUNT(*) > 1;
+-- Remove duplicate rows 
+DELETE FROM `decent-bird-396820.capstone_project.combined_data`
+WHERE ride_id IN (
+  SELECT ride_id
+  FROM `decent-bird-396820.capstone_project.combined_data`
+  GROUP BY ride_id
+  HAVING COUNT(*) > 1
+);
+-- Check for missing ride IDs
+SELECT COUNT(*) AS missing_ride_id_count
+FROM `decent-bird-396820.capstone_project.combined_data`
+WHERE ride_id IS NULL;
+-- Remove rows with missing ride IDs
+DELETE FROM `decent-bird-396820.capstone_project.combined_data`
+WHERE ride_id IS NULL;
+
+
+
+--rideable_type
+-- how many different types of bikes in rideable_type
+SELECT COUNT(DISTINCT rideable_type) AS type_count, rideable_type
+FROM `decent-bird-396820.capstone_project.combined_data`
+GROUP BY rideable_type;
+-- Found out there are classic_bike, docked_bike, electric bike
+-- change 'docked_bike' to "classic_bike"
+UPDATE `decent-bird-396820.capstone_project.combined_data`
+SET rideable_type = "classix bike"
+WHERE rideable_type = "docked_bike";
+-- Remove rows with NULL values in the rideable_type column
+DELETE FROM `decent-bird-396820.capstone_project.combined_data`
+WHERE rideable_type IS NULL;
+
+
+
+--started_at/ended_at
+-- Remove rows with missing timestamps (NULL values)
+DELETE FROM `decent-bird-396820.capstone_project.combined_data`
+WHERE started_at IS NULL OR ended_at IS NULL;
+-- Remove rows with inconsistent timestamps (ended_at <= started_at)
+DELETE FROM `decent-bird-396820.capstone_project.combined_data`
+WHERE ended_at <= started_at;
+-- Drop the previous day_of_week column
+ALTER TABLE `decent-bird-396820.capstone_project.combined_data`
+DROP COLUMN day_of_week;
+
+-- Update the "day_of_week" column where it is currently null
+UPDATE `decent-bird-396820.capstone_project.combined_data`
+SET day_of_week = CASE
+    WHEN EXTRACT(DAYOFWEEK FROM started_at) = 1 THEN 'Sun'
+    WHEN EXTRACT(DAYOFWEEK FROM started_at) = 2 THEN 'Mon'
+    WHEN EXTRACT(DAYOFWEEK FROM started_at) = 3 THEN 'Tue'
+    WHEN EXTRACT(DAYOFWEEK FROM started_at) = 4 THEN 'Wed'
+    WHEN EXTRACT(DAYOFWEEK FROM started_at) = 5 THEN 'Thu'
+    WHEN EXTRACT(DAYOFWEEK FROM started_at) = 6 THEN 'Fri'
+    WHEN EXTRACT(DAYOFWEEK FROM started_at) = 7 THEN 'Sat'
+    ELSE 'Unknown'
+END
+WHERE day_of_week IS NULL;
+
+-- Add a new column "month" to your table
+ALTER TABLE `decent-bird-396820.capstone_project.combined_data`
+ADD COLUMN month STRING;
+
+-- Update the "month" column where it is currently null
+UPDATE `decent-bird-396820.capstone_project.combined_data`
+SET month = CASE
+    WHEN EXTRACT(MONTH FROM started_at) = 1 THEN 'Jan'
+    WHEN EXTRACT(MONTH FROM started_at) = 2 THEN 'Feb'
+    WHEN EXTRACT(MONTH FROM started_at) = 3 THEN 'Mar'
+    WHEN EXTRACT(MONTH FROM started_at) = 4 THEN 'Apr'
+    WHEN EXTRACT(MONTH FROM started_at) = 5 THEN 'May'
+    WHEN EXTRACT(MONTH FROM started_at) = 6 THEN 'Jun'
+    WHEN EXTRACT(MONTH FROM started_at) = 7 THEN 'Jul'
+    WHEN EXTRACT(MONTH FROM started_at) = 8 THEN 'Aug'
+    WHEN EXTRACT(MONTH FROM started_at) = 9 THEN 'Sep'
+    WHEN EXTRACT(MONTH FROM started_at) = 10 THEN 'Oct'
+    WHEN EXTRACT(MONTH FROM started_at) = 11 THEN 'Nov'
+    WHEN EXTRACT(MONTH FROM started_at) = 12 THEN 'Dec'
+    ELSE 'Unknown'
+END
+WHERE month IS NULL;
+
+
+
+
+-- ??????????????
+SELECT *
+FROM `decent-bird-396820.capstone_project.combined_data`
+WHERE TIMESTAMP_DIFF(ended_at, started_at, SECOND) > 60 -- More than 1 minute
+  AND TIMESTAMP_DIFF(ended_at, started_at, SECOND) < 86400 -- Less than 1 day (60 seconds * 60 minutes * 24 hours)
+-------????????????
+
+
+
+
+--start_station_name/end_station_name
+-- Remove leading and trailing spaces from station names
+UPDATE `decent-bird-396820.capstone_project.combined_data`
+SET start_station_name = TRIM(BOTH ' ' FROM start_station_name),
+    end_station_name = TRIM(BOTH ' ' FROM end_station_name);
+-- Check for rows with '(Temp)' substring in station names
+SELECT *
+FROM `decent-bird-396820.capstone_project.combined_data`
+WHERE start_station_name LIKE '%(Temp)%'
+   OR end_station_name LIKE '%(Temp)%';
+-- Remove '(Temp)' substrings from station names
+UPDATE `decent-bird-396820.capstone_project.combined_data`
+SET start_station_name = REPLACE(start_station_name, '(Temp)', ''),
+    end_station_name = REPLACE(end_station_name, '(Temp)', '');
+-- Remove classic/docked bike trips with missing station names
+DELETE FROM your_table_name
+WHERE (rideable_type = 'classic_bike' OR rideable_type = 'docked_bike')
+  AND (start_station_name IS NULL OR end_station_name IS NULL);
+-- Update null station names to 'Bike Lock' for electric bikes
+UPDATE your_table_name
+SET start_station_name = 'Bike Lock',
+    end_station_name = 'Bike Lock'
+WHERE rideable_type = 'electric_bike'
+  AND (start_station_name IS NULL OR end_station_name IS NULL);
+---?????????????????????
+UPDATE `decent-bird-396820.capstone_project.combined_data`
+SET start_station_name = TRIM(start_station_name),
+    end_station_name = TRIM(end_station_name);
+UPDATE `decent-bird-396820.capstone_project.combined_data`
+SET start_station_name = REPLACE(start_station_name, '(Temp)', ''),
+    end_station_name = REPLACE(end_station_name, '(Temp)', '');
+DELETE FROM `decent-bird-396820.capstone_project.combined_data`
+WHERE start_station_name IN (
+    'DIVVY CASSETTE REPAIR MOBILE STATION',
+    'Lyft Driver Center Private Rack',
+    '351',
+    'Base - 2132 W Hubbard Warehouse',
+    'Hubbard Bike-checking (LBS-WH-TEST)',
+    'WEST CHI-WATSON'
+) OR end_station_name IN (
+    'DIVVY CASSETTE REPAIR MOBILE STATION',
+    'Lyft Driver Center Private Rack',
+    '351',
+    'Base - 2132 W Hubbard Warehouse',
+    'Hubbard Bike-checking (LBS-WH-TEST)',
+    'WEST CHI-WATSON'
+);
+----------??????????????
+
+
+
+
+--start_lat/start_lng/end_lat/end_lng
+-- Remove rows with NULL values in latitude and longitude columns
+DELETE FROM `decent-bird-396820.capstone_project.combined_data`
+WHERE start_lat IS NULL OR start_lng IS NULL OR end_lat IS NULL OR end_lng IS NULL;
+
+
+
+
+--member_casual
+-- Count and list the unique types in the member_casual column
+SELECT member_casual, COUNT(*) AS count
+FROM `decent-bird-396820.capstone_project.combined_data`
+GROUP BY member_casual;
+
+
+
